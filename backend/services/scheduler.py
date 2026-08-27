@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session
 
 from backend.models.medication_log import MedicationLog
+from backend.services.reminder import process_medication_reminder
 
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -22,6 +23,25 @@ def get_due_medication_logs(db: Session):
     )
 
 
+def process_due_medication_logs(db: Session):
+    """
+    Find all due medication logs and trigger reminders.
+    """
+
+    logs = get_due_medication_logs(db)
+
+    print(f"Due medication logs: {len(logs)}")
+
+    for log in logs:
+        print(
+            f"Processing Log ID={log.id}, "
+            f"Patient ID={log.patient_id}, "
+            f"Medication ID={log.medication_id}"
+        )
+
+        process_medication_reminder(db, log)
+
+
 if __name__ == "__main__":
     from backend.database.connection import SessionLocal
 
@@ -32,17 +52,7 @@ if __name__ == "__main__":
 
         print(f"Current IST: {now}")
 
-        logs = get_due_medication_logs(db)
+        process_due_medication_logs(db)
 
-        print(f"Due medication logs: {len(logs)}")
-
-        for log in logs:
-            print(
-                f"Log ID: {log.id}, "
-                f"Patient ID: {log.patient_id}, "
-                f"Medication ID: {log.medication_id}, "
-                f"Scheduled: {log.scheduled_time}, "
-                f"Status: {log.status}"
-            )
     finally:
         db.close()

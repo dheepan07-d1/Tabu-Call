@@ -23,14 +23,16 @@ def create_alert(alert: AlertCreate, db: Session = Depends(get_db)):
     if alert.medication_log_id is not None:
         medication_log = (
             db.query(MedicationLog)
-            .filter(MedicationLog.id == alert.medication_log_id)
+            .filter(
+                MedicationLog.id == alert.medication_log_id,
+                MedicationLog.patient_id == alert.patient_id,
+            )
             .first()
         )
-
         if not medication_log:
             raise HTTPException(
                 status_code=404,
-                detail="Medication log not found",
+                detail="Medication log not found for this patient",
             )
 
     new_alert = Alert(
