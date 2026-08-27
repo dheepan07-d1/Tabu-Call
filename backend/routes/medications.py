@@ -20,7 +20,6 @@ router = APIRouter(
 def get_medications(db: Session = Depends(get_db)):
     return db.query(Medication).all()
 
-
 @router.post("", response_model=MedicationResponse, status_code=201)
 def create_medication(
     medication: MedicationCreate,
@@ -38,13 +37,14 @@ def create_medication(
 
     if medication.prescription_id is not None:
         prescription = db.query(Prescription).filter(
-            Prescription.id == medication.prescription_id
+            Prescription.id == medication.prescription_id,
+            Prescription.patient_id == medication.patient_id,
         ).first()
 
         if not prescription:
             raise HTTPException(
                 status_code=404,
-                detail="Prescription not found",
+                detail="Prescription not found for this patient",
             )
 
     new_medication = Medication(

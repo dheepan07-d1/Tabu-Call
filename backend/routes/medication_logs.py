@@ -37,13 +37,14 @@ def create_medication_log(
         )
 
     medication = db.query(Medication).filter(
-        Medication.id == log.medication_id
+        Medication.id == log.medication_id,
+        Medication.patient_id == log.patient_id,
     ).first()
 
     if not medication:
         raise HTTPException(
             status_code=404,
-            detail="Medication not found",
+            detail="Medication not found for this patient",
         )
 
     new_log = MedicationLog(
