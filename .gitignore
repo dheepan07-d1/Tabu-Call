@@ -33,3 +33,8 @@ __pycache__/
 *.db
 # Archives
 *.zip
+
+
+backend/.env
+# Prescription uploads
+backend/uploads/
