@@ -1,10 +1,10 @@
 from pathlib import Path
 
 import pytesseract
-from PIL import Image
+from PIL import Image, ImageOps
 
 
-# Tell pytesseract where Tesseract is installed on Windows
+# Tesseract installation on Windows
 pytesseract.pytesseract.tesseract_cmd = (
     r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 )
@@ -12,7 +12,7 @@ pytesseract.pytesseract.tesseract_cmd = (
 
 def extract_text_from_image(image_path: str) -> dict:
     """
-    Extract text from a prescription image using Tesseract OCR.
+    Extract English + Tamil text from a prescription image.
 
     Returns:
         {
@@ -24,20 +24,35 @@ def extract_text_from_image(image_path: str) -> dict:
     path = Path(image_path)
 
     if not path.exists():
-        raise FileNotFoundError(f"Image not found: {image_path}")
+        raise FileNotFoundError(
+            f"Image not found: {image_path}"
+        )
 
+    # Open image safely
     image = Image.open(path)
 
-    # OCR in English + Tamil
+    # Convert RGBA/RGB/etc. to RGB
+    if image.mode != "RGB":
+        image = image.convert("RGB")
+
+    # Convert to grayscale
+    gray = ImageOps.grayscale(image)
+
+    # Tesseract configuration
+    config = "--psm 6"
+
+    # OCR: English + Tamil
     text = pytesseract.image_to_string(
-        image,
+        gray,
         lang="eng+tam",
+        config=config,
     )
 
-    # Get word-level OCR confidence
+    # Word-level OCR confidence
     data = pytesseract.image_to_data(
-        image,
+        gray,
         lang="eng+tam",
+        config=config,
         output_type=pytesseract.Output.DICT,
     )
 
